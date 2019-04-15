@@ -94,16 +94,16 @@ void example(){
 
 Functor_name (1)|prototype (2)|Extra_t...
 ----------------|-------------|-----------
-Fn_execute      |void fn(bind_me...)| 	
-Fn_insert 	    |Rowid<Tag_xxx>     fn(bind_me...)|
-Fn_get_value_unique| 	T fn(bind_me...)| 	
-Fn_get_value_optional| 	std::optional<T> fn(bind_me...) |	
-Fn_get_row_unique| 	std::tuple<Retunr_t...> fn(bind_me...)| 	
-Fn_get_row_optional| 	std::optional<std::tuple<Retunr_t...> > fn(bind_me...) 	|
-Fn_foreach| 	void_or_bool fn([](...){}, bind_me... ) |	
-Fn_function |	void_or_bool fn(bind_me... )| 	Function_t
-Fn_get_column| 	std::vector<T> write_here; fn(std::back_inserter(write_here) , bind_me... );| 	
-Fn_get_table| 	std::vector<std::tuple<...> > write_here ;fn(std::back_inserter(write_here) , bind_me... )|
+`tdb::Fn_execute`      |`void fn(bind_me...)`| 	
+`tdb::Fn_insert` 	    |`Rowid<Tag_xxx> fn(bind_me...)`|
+`tdb::Fn_get_value_unique`|`T fn(bind_me...)`| 	
+`tdb::Fn_get_value_optional`|`std::optional<T> fn(bind_me...)`|	
+`tdb::Fn_get_row_unique`|`std::tuple<Retunr_t...> fn(bind_me...)`| 	
+`tdb::Fn_get_row_optional`|`std::optional<std::tuple<Retunr_t...> > fn(bind_me...)`|
+`tdb::Fn_foreach`|`void_or_bool fn([](...){}, bind_me... )`|	
+`tdb::Fn_function`|`void_or_bool fn(bind_me... )`| 	Function_t
+`tdb::Fn_get_column`|`std::vector<T> write_here;fn(std::back_inserter(write_here) , bind_me... );`| 	
+`tdb::Fn_get_table`|`std::vector<std::tuple<...> > write_here; fn(std::back_inserter(write_here) , bind_me... )`|
 
 - (1) All functors have the following template parameters
   - Tag_t The tag that identifies the database driver type (ex tdb::Tag_sqlite)
