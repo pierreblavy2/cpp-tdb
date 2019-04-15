@@ -101,8 +101,8 @@ Functor_name (1)|prototype (2)|Extra_t...
 `tdb::Fn_get_row_unique`|`std::tuple<Retunr_t...> fn(bind_me...)`| 	
 `tdb::Fn_get_row_optional`|`std::optional<std::tuple<Retunr_t...> > fn(bind_me...)`|
 `tdb::Fn_foreach`|`void_or_bool fn([](...){}, bind_me... )`|	
-`tdb::Fn_function`|`void_or_bool fn(bind_me... )`| 	Function_t
-`tdb::Fn_get_column`|`std::vector<T> write_here;fn(std::back_inserter(write_here) , bind_me... );`| 	
+`tdb::Fn_function`|`void_or_bool fn(bind_me... )`|`Function_t`
+`tdb::Fn_get_column`|`std::vector<T> write_here; fn(std::back_inserter(write_here) , bind_me... );`| 	
 `tdb::Fn_get_table`|`std::vector<std::tuple<...> > write_here; fn(std::back_inserter(write_here) , bind_me... )`|
 
 - (1) All functors have the following template parameters
