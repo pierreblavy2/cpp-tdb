@@ -95,7 +95,7 @@ void example(){
 Functor_name (1)|prototype (2)|Extra_t...
 ----------------|-------------|-----------
 Fn_execute      |void fn(bind_me...)| 	
-Fn_insert 	    |Rowid<Tag_xxx>     |fn(bind_me...) 	
+Fn_insert 	    |Rowid<Tag_xxx>     fn(bind_me...)|
 Fn_get_value_unique| 	T fn(bind_me...)| 	
 Fn_get_value_optional| 	std::optional<T> fn(bind_me...) |	
 Fn_get_row_unique| 	std::tuple<Retunr_t...> fn(bind_me...)| 	
