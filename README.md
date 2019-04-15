@@ -83,7 +83,7 @@ void example(){
   > fn(connection, "select max(i1) from test where d1 != $1 and d2 != $2");
 
   //fn is a functor, that can be called as a regular function
-  int i = fn_unique1(1.0,1.0);
+  int i = fn(1.0,1.0);
 
 }
 ```
