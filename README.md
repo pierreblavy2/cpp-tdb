@@ -1,0 +1,2 @@
+# cpp-tdb
+  This project allows to connect to postresql and sqlite databases, execute queries and retrive results in a consistent way. A template user friendly interface is provided in order to easily convert sql queries to functors. A less user friendly interface is provided to extend the database to custom data type, or to other underlying sql drivers.  Even if the current version of the project is working, this project is still experimental, and future version will certainly make large changes in the interface.
