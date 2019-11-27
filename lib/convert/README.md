@@ -36,9 +36,9 @@ template<typename Context_tag=void, typename To_t, typename From_t>
 void convert(To_t &write_here, const From_t &f){/*write_here=Convert_t<To_t,From_t,Context_tag>::run(f)*/}
 ```
 
-- ```From_tt``` is the
+- ```From_tt``` is the type to convert from
 - ```To_tt``` is the type to convert to
-- ```Context_tag_t``` is the type that describes the context of the conversion. Any empty tag class will to the job.
+- ```Context_tag_t``` is the type that describes the context of the conversion. Any (empty) tag class will to the job.
 
 
 
