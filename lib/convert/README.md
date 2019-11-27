@@ -22,7 +22,7 @@ The convert library provides an unified, context dependant, extensible way to de
 
 ### Design of the convert library
 
-In order to solve the following problems, the convert library works by defining the following code, with some extra magic to
+In order to solve these problems, the convert library works by defining the following code, with some extra magic to
 avoid trivials conversions (ex : convert from T to T).
 
 ```cpp
