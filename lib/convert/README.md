@@ -30,7 +30,7 @@ template<typename To_tt, typename From_tt, typename Context_tag>
 struct Convert_t{...};
 
 template<typename To_t, typename Context_tag=void, typename From_t> 
-decltype(auto) convert(const From_t &f){/*calls Convert_t<To_t,From_t,Context_tag>::run(f)*/}
+decltype(auto) convert(const From_t &f){/*return Convert_t<To_t,From_t,Context_tag>::run(f)*/}
 
 template<typename Context_tag=void, typename To_t, typename From_t> 
 void convert(To_t &write_here, const From_t &f){/*write_here=Convert_t<To_t,From_t,Context_tag>::run(f)*/}
