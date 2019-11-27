@@ -100,20 +100,23 @@ Functor_name (1)|prototype (2)|Extra_t...
 `tdb::Fn_insert` 	    |`Rowid<Tag_xxx> fn(bind_me...)`|
 `tdb::Fn_get_value_unique`|`T fn(bind_me...)`| 	
 `tdb::Fn_get_value_optional`|`std::optional<T> fn(bind_me...)`|	
-`tdb::Fn_get_row_unique`|`std::tuple<Retunr_t...> fn(bind_me...)`| 	
+`tdb::Fn_get_row_unique`|`std::tuple<Return_t...> fn(bind_me...)`| 	
 `tdb::Fn_get_row_optional`|`std::optional<std::tuple<Retunr_t...> > fn(bind_me...)`|
 `tdb::Fn_foreach`|`void_or_bool fn([](...){}, bind_me... )`|	
 `tdb::Fn_function`|`void_or_bool fn(bind_me... )`|`Function_t`
 `tdb::Fn_get_column`|`std::vector<T> write_here; fn(std::back_inserter(write_here) , bind_me... );`| 	
 `tdb::Fn_get_table`|`std::vector<std::tuple<...> > write_here; fn(std::back_inserter(write_here) , bind_me... )`|
 
-- (1) All functors have the following template parameters
+(1) All functors have the following template parameters
   - Tag_t The tag that identifies the database driver type (ex tdb::Tag_sqlite)
-  - Return_ttReturned types ex std::tuple<int,double> (no const, no reference)
+  - Return_tt Returned types ex std::tuple<int,double> (no const, no reference)
   - Bind_tt Bounded types ex std::tuple<int,int> (no const, no reference)
-  - Multi_thread true : locks the connection mutex, do stuff, unlock. false : do stuff without touching mutex. default=true
+  - Multi_thread (default=true)
+    - true : locks the connection mutex, do stuff, unlock. 
+    - false : do stuff without touching mutex
   - Extra_t...Extra template args specific to each functor
-- (2) The generated functor prototype. Note that void_or_bool note either void when the functor passed in extra have an operator() that returns void, or bool when the functor passed in extra have an operator() that returns bool
+  
+(2) The generated functor prototype. Note that void_or_bool note either void when the functor passed in extra have an operator() that returns void, or bool when the functor passed in extra have an operator() that returns bool
 
 
 
