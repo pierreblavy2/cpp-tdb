@@ -55,8 +55,15 @@ struct Convert_t<bool,std::string,  tdb::Tag_psql >{
 	static constexpr bool is_implemented = true;
 
 	static To_t run(const From_t &s){
-		if(s=="1" or s=="t" or s=="true" or s=="TRUE" or s=="y" or s == "yes" or s == "on"){return true;}
-		if(s=="0" or s=="f" or s=="false" or s=="FALSE" or s=="n" or s == "no" or s == "off"){return false;}
+		//common cases
+		if(s=="1"){return true;}
+		if(s=="0"){return false;}
+		
+		//exotic cases
+		if(s=="t" or s=="true"  or s=="TRUE"  or s=="y" or s == "yes" or s == "on" ){return true;}
+		if(s=="f" or s=="false" or s=="FALSE" or s=="n" or s == "no"  or s == "off"){return false;}
+		
+		//invalid case => throw
 		throw std::runtime_error("Cannot convert string to bool, string="+s+", context=Tag_psql");
 	}
 };
