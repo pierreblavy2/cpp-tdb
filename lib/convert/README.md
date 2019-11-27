@@ -26,7 +26,7 @@ In order to solve the following problems, the convert library works by defining 
 avoid trivials conversions (ex : convert from T to T).
 
 ```cpp
-template<typename To_tt, typename From_tt, typename Context_tag_tt>
+template<typename To_tt, typename From_tt, typename Context_tag>
 struct Convert_t{...};
 
 template<typename To_t, typename Context_tag=void, typename From_t> 
@@ -94,11 +94,11 @@ To define a default implementation for unspecified or undefined context, simply 
 #include <convert/convert.hpp>
   
 //default string to bool
-template<typename Context_tag_tt>
-struct Convert_t<std::string, bool, Context_tag_tt>{
+template<typename Context_tag>
+struct Convert_t<std::string, bool, Context_tag>{
     typedef std::string To_t;
     typedef bool        From_t;
-    typedef Context_tag_tt Context_tag_t;
+    typedef Context_tag Context_tag_t;
 
     static To_t run(const From_t &b){
         if(b){return "true";}else{return "false";}
