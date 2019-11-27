@@ -44,6 +44,39 @@ struct Convert_t<
 	}
 };
 
+//string => bool
+//doc : https://www.postgresql.org/docs/9.1/datatype-boolean.html
+template<>
+struct Convert_t<bool,std::string,  tdb::Tag_psql >{
+	typedef bool To_t;
+	typedef std::string From_t;
+	typedef tdb::Tag_psql Context_tag_t;
+
+	static constexpr bool is_implemented = true;
+
+	static To_t run(const From_t &s){
+		if(s=="1" or s=="t" or s=="true" or s=="TRUE" or s=="y" or s == "yes" or s == "on"){return true;}
+		if(s=="0" or s=="f" or s=="false" or s=="FALSE" or s=="n" or s == "no" or s == "off"){return false;}
+		throw std::runtime_error("Cannot convert string to bool, string="+s+", context=Tag_psql");
+	}
+};
+
+
+//bool => string
+//doc : https://www.postgresql.org/docs/9.1/datatype-boolean.html
+template<>
+struct Convert_t<std::string, bool,   tdb::Tag_psql >{
+	typedef std::string   To_t;
+	typedef bool          From_t;
+	typedef tdb::Tag_psql Context_tag_t;
+
+	static constexpr bool is_implemented = true;
+
+	static To_t run(const From_t &b){
+		if(b){return "1";}else{return "0";}
+	}
+};
+
 
 //===============
 //=== Query_t ===
