@@ -19,7 +19,7 @@ The code is published under [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.txt
 
 
 ## Examples 
-Queries examples are in src/lib/tdb/tdb_examples.cpp
+Queries examples are in [src/lib/tdb/tdb_examples.cpp](lib/tdb/functors/examples)
 
 ## Execute queries
 Note that, the C++ code is the same for Sqlite, simply `#include tdb/tdb_sqlite.hpp` and use `tdb::Tag_sqlite`. The SQL is somehow different. For example SQLITE doesn't need a return statement in insert queries in order to get a Rowid, and uses ? as placeholder for bound parameters.
@@ -90,8 +90,8 @@ void example(){
 }
 ```
 
-- Functors examples are in src/lib/tdb/functors/examples/
-- All functors summary is in src/lib/tdb/functors/all.hpp
+- Functors examples are in [src/lib/tdb/functors/examples/](lib/tdb/functors/examples) 
+- All functors summary are in [src/lib/tdb/functors/all.hpp](lib/tdb/functors/all.hpp) 
 
 
 Functor_name (1)|prototype (2)|Extra_t...
