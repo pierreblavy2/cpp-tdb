@@ -121,3 +121,29 @@ Functor_name (1)|prototype (2)|Extra_t... | Example |
 
 
 
+# Write a tdb database driver (draft).
+Database drivers are programmed trough template specialisation. Each specialized templates are named Xxxx_t, and takes as the first template argument a Tag_xxxx that identified the driver the specialization refers to. 
+
+Examples are avaiable in [tdb_psql.hpp](lib/tdb/tdb_psql.hpp) and [tdb_sqlite.hpp](lib/tdb/tdb_sqlite.hpp). In order to be consistent, your drivers should go in lib/tdb/tdb_xxxx.hpp, and the xxxx suffix must be the same as the one in Tag_xxxx
+
+## Create a custom tag (required)
+Your Tag is an empty class in the tdb namespace. For code consistency, your tag should be named ``Tag_xxxx`` and must be in the tdb namespace.
+```cpp
+namespace tdb{
+	struct Tag_mydriver{};
+}
+```
+
+## Define the type for Rowid (required)
+The Rowid it the type that identifies the lines in the database, it's typically an integer.
+```cpp
+template<> struct tdb::Rowid_t<tdb::Tag_psql>{
+  typedef !MyIntType type;   //ex MyIntType = long unsigend int
+};
+```
+
+
+
+
+
+
