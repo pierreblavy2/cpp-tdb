@@ -96,16 +96,16 @@ void example(){
 
 Functor_name (1)|prototype (2)|Extra_t... | Example |
 ----------------|-------------|-----------|---------|
-`tdb::Fn_execute`      |`void fn(bind_me...)`| [Fn_execute.cpp](lib/tdb/functors/examples/Fn_execute.cpp) |
-`tdb::Fn_insert` 	    |`Rowid<Tag_xxx> fn(bind_me...)`|[Fn_insert.cpp](lib/tdb/functors/examples/Fn_insert.cpp) |
-`tdb::Fn_get_value_unique`|`T fn(bind_me...)`| 	[Fn_get_value.cpp](lib/tdb/functors/examples/Fn_get_value.cpp) |
-`tdb::Fn_get_value_optional`|`std::optional<T> fn(bind_me...)`|	[Fn_get_value.cpp](lib/tdb/functors/examples/Fn_get_value.cpp) |
-`tdb::Fn_get_row_unique`|`std::tuple<Return_t...> fn(bind_me...)`| [Fn_get_row.cpp](lib/tdb/functors/examples/Fn_get_row.cpp) |	
-`tdb::Fn_get_row_optional`|`std::optional<std::tuple<Retunr_t...> > fn(bind_me...)`| [Fn_get_row.cpp](lib/tdb/functors/examples/Fn_get_row.cpp) |
-`tdb::Fn_get_column`|`std::vector<T> write_here; fn(std::back_inserter(write_here) , bind_me... );`| [Fn_get_column.cpp](lib/tdb/functors/examples/Fn_get_column.cpp) |	
-`tdb::Fn_get_table`|`std::vector<std::tuple<...> > write_here; fn(std::back_inserter(write_here) , bind_me... )`|[Fn_get_table.cpp](lib/tdb/functors/examples/Fn_get_table.cpp) |	
-`tdb::Fn_foreach`|`void_or_bool fn([](...){}, bind_me... )`| [Fn_foreach.cpp](lib/tdb/functors/examples/Fn_foreach.cpp) |	
-`tdb::Fn_function`|`void_or_bool fn(bind_me... )`|`Function_t`  [Fn_function.cpp](lib/tdb/functors/examples/Fn_function.cpp) |
+`tdb::Fn_execute`      |`void fn(bind_me...)`| | [Fn_execute.cpp](lib/tdb/functors/examples/Fn_execute.cpp) |
+`tdb::Fn_insert` 	    |`Rowid<Tag_xxx> fn(bind_me...)`| |[Fn_insert.cpp](lib/tdb/functors/examples/Fn_insert.cpp) |
+`tdb::Fn_get_value_unique`|`T fn(bind_me...)`| |[Fn_get_value.cpp](lib/tdb/functors/examples/Fn_get_value.cpp) |
+`tdb::Fn_get_value_optional`|`std::optional<T> fn(bind_me...)`| |[Fn_get_value.cpp](lib/tdb/functors/examples/Fn_get_value.cpp) |
+`tdb::Fn_get_row_unique`|`std::tuple<Return_t...> fn(bind_me...)`| |[Fn_get_row.cpp](lib/tdb/functors/examples/Fn_get_row.cpp) |	
+`tdb::Fn_get_row_optional`|`std::optional<std::tuple<Retunr_t...> > fn(bind_me...)`| |[Fn_get_row.cpp](lib/tdb/functors/examples/Fn_get_row.cpp) |
+`tdb::Fn_get_column`|`std::vector<T> write_here; fn(std::back_inserter(write_here) , bind_me... );`| |[Fn_get_column.cpp](lib/tdb/functors/examples/Fn_get_column.cpp) |	
+`tdb::Fn_get_table`|`std::vector<std::tuple<...> > write_here; fn(std::back_inserter(write_here) , bind_me... )`| |[Fn_get_table.cpp](lib/tdb/functors/examples/Fn_get_table.cpp) |	
+`tdb::Fn_foreach`|`void_or_bool fn([](...){}, bind_me... )`| |[Fn_foreach.cpp](lib/tdb/functors/examples/Fn_foreach.cpp) |	
+`tdb::Fn_function`|`void_or_bool fn(bind_me... )`|`Function_t`| [Fn_function.cpp](lib/tdb/functors/examples/Fn_function.cpp) |
 
 
 (1) All functors have the following template parameters
