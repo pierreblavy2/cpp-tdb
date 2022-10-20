@@ -3,7 +3,7 @@
 ## Introduction
 This project allows to connect to **postresql** and **sqlite** databases, execute queries and retrive results in a consistent way. A template user friendly interface is provided in order to easily convert sql queries to functors and to add support for user defined types. A less user friendly interface is provided to extend the database to other underlying sql drivers.
 
-Even if the current version of the project is working, this project is still **experimental**, and future version will certainly make large changes in the interface. The developpment version can be found at https://tentacule.be/fossil/cpp-tdb
+Even if the current version of the project is working, this project is still **experimental**, and future version will certainly make large changes in the interface.
 
 Note that the current version is statically typed : you need to know, at compile time, which types should be bounded to a query, and which type you expect it to return. This library is not suitable for dynamic queries generation, dynamic binding or dynamic return types. If you plan to do so, consider using the old [cpp-sql_wrapper](https://github.com/pierreblavy2/sql_wrapper).
 
