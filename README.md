@@ -1,7 +1,9 @@
 # cpp-tdb : C++ Template Data Base wrapper
 
 ## Introduction
-This project allows to connect to **postresql** and **sqlite** databases, execute queries and retrive results in a consistent way. A template user friendly interface is provided in order to easily convert sql queries to functors and to add support for user defined types. A less user friendly interface is provided to extend the database to other underlying sql drivers.
+This project allows to connect to **postresql** and **sqlite** databases, execute queries and retrive results in a consistent way. A template user friendly interface is provided in order to easily convert sql queries to functors and to add support for user defined types. 
+
+New backend can be added to the library by template specialization.
 
 ## License
 The code is published under [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.txt) license. Copyright goes to Pierre Blavy, INRA.
