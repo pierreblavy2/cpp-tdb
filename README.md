@@ -3,8 +3,6 @@
 ## Introduction
 This project allows to connect to **postresql** and **sqlite** databases, execute queries and retrive results in a consistent way. A template user friendly interface is provided in order to easily convert sql queries to functors and to add support for user defined types. A less user friendly interface is provided to extend the database to other underlying sql drivers.
 
-Note that the current version is statically typed : you need to know, at compile time, which types should be bounded to a query, and which type you expect it to return. This library is not suitable for dynamic queries generation, dynamic binding or dynamic return types. If you plan to do so, consider using the old [cpp-sql_wrapper](https://github.com/pierreblavy2/sql_wrapper).
-
 ## License
 The code is published under [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.txt) license. Copyright goes to Pierre Blavy, INRA.
 
