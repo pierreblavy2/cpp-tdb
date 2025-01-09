@@ -131,7 +131,7 @@ struct tdb::Try_fetch_t<tdb::Tag_sqlite,Return_tt>{
 		else if(result.native_result == SQLITE_DONE){
 			return r;
 		}else{
-			sqlite3_finalize(result.native_query);
+			//sqlite3_finalize(result.native_query);
 			throw Exception_t<Tag_sqlite>("Cannot fetch the data" + sqlite::error_to_string(result.native_result)  );
 		}
 	}
