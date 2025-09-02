@@ -6,7 +6,7 @@ This project allows to connect to **postresql** and **sqlite** databases, execut
 New backend can be added to the library by template specialization.
 
 ## License
-The code is published under [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.txt) license. Copyright goes to Pierre Blavy, INRA.
+The code is published under [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.txt) license. Copyright goes to Pierre Blavy.
 
 # Usage
 
