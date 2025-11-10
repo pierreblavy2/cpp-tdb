@@ -27,6 +27,7 @@ tdb::Connection_t<tdb::Tag_sqlite>::Connection_t(Connection_t&& a){
 
 
 
+/*
 void tdb::Connection_t<tdb::Tag_sqlite>::cstr_limits(){
 	//load database limits
 	//https://www.sqlite.org/c3ref/limit.html
@@ -48,7 +49,7 @@ void tdb::Connection_t<tdb::Tag_sqlite>::cstr_limits(){
 	read_limit(sqlite_max_attached_range           , sqlite_max_attached_value);
 }
 
-
+*/
 
 
 
@@ -79,7 +80,7 @@ void tdb::Connection_t<tdb::Tag_sqlite>::connect(const std::string &db_name){
 
 	try{
 		tdb::execute(*this,"PRAGMA foreign_keys = ON");
-		cstr_limits();
+		//cstr_limits();
 	}catch(...){
 		sqlite3_close(native_connection);
 		native_connection=nullptr;

@@ -16,6 +16,9 @@
 //         parameter
 
 
+//--- execute, at construction ---
+#include "Fn_create.hpp"
+
 //--- insert, execute ---
 #include "Fn_insert.hpp"   //Rowid<Tag_xxx> fn(bind_me...)
 #include "Fn_execute.hpp"  //void           fn(bind_me...)

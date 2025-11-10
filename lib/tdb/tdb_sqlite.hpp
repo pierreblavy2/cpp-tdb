@@ -7,6 +7,7 @@
 
 #include <tdb/tdb.hpp>
 #include <sqlite3.h>
+#include <filesystem>
 
 
 namespace tdb{
@@ -30,6 +31,8 @@ struct tdb::Connection_t<tdb::Tag_sqlite>{
 
 	~Connection_t() noexcept(false) {disconnect(); }            //disconnect
 	void connect(const std::string &s);
+
+
 	void disconnect();
 
 	//Connection_t(Connection_t&&);
@@ -46,6 +49,7 @@ struct tdb::Connection_t<tdb::Tag_sqlite>{
 	Connection_t(){}
 	explicit Connection_t(const char* db_name_)       {connect(db_name_);}
 	explicit Connection_t(const std::string& db_name_){connect(db_name_);}
+
 
 	//if possible construct from : db_name, db_host="", db_user="", db_pass="",port=0,extra="");
 	explicit Connection_t(
@@ -80,6 +84,7 @@ struct tdb::Connection_t<tdb::Tag_sqlite>{
 		value_type min_value;
 		value_type max_value;
 	};
+	/*
 	static constexpr Sqlite_limit_range sqlite_max_length_range             ={SQLITE_LIMIT_LENGTH     ,1000000000,1,2147483647};//Maximum length of a string or BLOB
 	static constexpr Sqlite_limit_range sqlite_max_column_range             ={SQLITE_LIMIT_COLUMN     ,2000      ,1,32767}; //Maximum Number Of Columns
 	static constexpr Sqlite_limit_range sqlite_max_sql_length_range         ={SQLITE_LIMIT_LENGTH     ,1000000   ,1,1073741824};  //Maximum Length Of An SQL Statement
@@ -103,7 +108,7 @@ struct tdb::Connection_t<tdb::Tag_sqlite>{
 	int sqlite_max_attached_value            = 0;
 
 	private:
-	void cstr_limits();
+	void cstr_limits();*/
 
 };
 
@@ -213,25 +218,27 @@ template<typename Return_tt> struct tdb::Try_fetch_t<tdb::Tag_sqlite,Return_tt>;
 //=== Bind_one_t ===
 //==================
 // Bind_t default uses Bind_one (see tdb_sqlite.tpp)
-template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,double       ,I>; //double -> sqlite3_bind_double
-template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,int          ,I>; //int           -> sqlite3_bind_int
-template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,sqlite3_int64,I>; //sqlite3_int64 -> sqlite3_bind_int64
-template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,size_t       ,I>; //size_t        -> sqlite3_int64 => MAY OVERFLOW (throw)
+//template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,double       ,I>; //double -> sqlite3_bind_double
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,std::string  ,I>; //std::string   -> sqlite3_bind_text
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,bool         ,I>; //bool          -> sqlite3_bind_int
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,char         ,I>; //char          -> sqlite3_bind_text
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,const char*  ,I>; //const char*   -> sqlite3_bind_text
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,tdb::Null    ,I>; //tdb::Null     -> sqlite3_bind_null
 
+/*
+template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,int          ,I>; //int           -> sqlite3_bind_int
+template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,sqlite3_int64,I>; //sqlite3_int64 -> sqlite3_bind_int64
+template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,size_t       ,I>; //size_t        -> sqlite3_int64 => MAY OVERFLOW (throw)
+*/
 
 //=================
 //=== Get_one_t ===
 //=================
 //idem
-template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,double,        I>; //double        <- sqlite3_column_double;
-template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,int,           I>; //int           <- sqlite3_column_int
-template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,sqlite3_int64, I>; //sqlite3_int64 <- sqlite3_column_int64
-template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,size_t,        I>; //size_t        <- sqlite3_column_int64
+//template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,double,        I>; //double        <- sqlite3_column_double;
+//template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,int,           I>; //int           <- sqlite3_column_int
+//template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,sqlite3_int64, I>; //sqlite3_int64 <- sqlite3_column_int64
+//template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,size_t,        I>; //size_t        <- sqlite3_column_int64
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,std::string,   I>; //std::string   <- sqlite3_column_text
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,bool,          I>; //bool          <- sqlite3_column_int  (expects 0 or 1, throw if anything else)
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,char,          I>; //char          <- sqlite3_column_text (expect a single char string, throw if anything else)

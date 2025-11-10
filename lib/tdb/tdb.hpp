@@ -308,9 +308,7 @@ namespace tdb{
 
     //--- Bind_r (don't touch) ---
     //helper, recursively bind args
-    /*
     namespace helpers{
-
 		template <typename Tag_t, typename Bind_tt, size_t I>
 		struct Bind_r{
 
@@ -335,56 +333,34 @@ namespace tdb{
 	    >
 		void bind_r(Query_t<Tag_t,Return_tt,Bind_tt> &q, const Bind_t2& bind_me){
 			Bind_r<Tag_t,Bind_tt,std::tuple_size<Bind_tt>::value> ::run(q,bind_me);
-        }
-    }*/
-
-
-
-    //--- bind, bind_a (don't touch) ---
-    //bind  (query, tuple_to_bind)
-    //bind_a(query, arg_to_bind1, ...);
-
-    namespace helpers{
-      template <size_t I, typename Tag_t,typename Return_tt, typename Bind_tt>
-      void bind_ra(Query_t<Tag_t, Return_tt, Bind_tt >&){}
-
-      template <size_t I, typename Tag_t,typename Return_tt, typename Bind_tt, typename T, typename...A >
-      void bind_ra(Query_t<Tag_t, Return_tt, Bind_tt >& q, const T&t, const A& ... a){
-           tdb::Bind_one_t<Tag_t,T,I>::run(q,t);
-           bind_ra<I+1>(q,a...);
-      }
-
-
-      template <size_t I, typename Tag_t,typename Return_tt, typename Bind_tt, typename Bind_tt2 >
-      void bind_rt(Query_t<Tag_t, Return_tt, Bind_tt >& q, Bind_tt2&& bind_tt){
-          if constexpr(I < std::tuple_size_v<Bind_tt> ){
-              typedef std::remove_const_t<std::remove_reference_t<std::tuple_element_t<I,std::remove_reference_t<Bind_tt2>>>> el_t;
-              tdb::Bind_one_t<Tag_t,el_t,I>::run( q,std::get<I>(bind_tt) );
-              bind_rt<I+1>(q,std::forward<Bind_tt2>(bind_tt));
-          }
-      }
+		}
     }
 
-    //bind_a (don't touch)
-    //bind arguments
-    template <typename Tag_t,typename Return_tt, typename Bind_tt, typename...A >
-    void bind_a(Query_t<Tag_t, Return_tt, Bind_tt >& q, const A&... bind_me){
-    	static_assert(std::tuple_size<Bind_tt>::value == sizeof...(bind_me), "Error in bind_a : wrong number of arguments");
-        //Bind_t<Tag_t,Return_tt,Bind_tt >::run(q, std::tie(bind_me...) );
-        helpers::bind_ra<0>(q,bind_me...);
-    }
-
-    //bind a tuple containing ALL arguments
-    template <typename Tag_t,typename Return_tt, typename Bind_tt, typename Bind_tt2>
-    void bind(Query_t<Tag_t, Return_tt, Bind_tt >& q, Bind_tt2&& bind_me){
-
-        static_assert(std::tuple_size<std::remove_reference_t<Bind_tt> >::value == std::tuple_size<std::remove_reference_t<Bind_tt2>>::value, "Error in bind : wrong number of arguments");
-        //Bind_t<Tag_t,Return_tt,Bind_tt >::run(q, std::tie(bind_me...) );
-        helpers::bind_rt<0>(q,std::forward<Bind_tt2>(bind_me));
-    }
 
 
     //--- Bind_t (optional) ---
+    //The default implementation calls Bind_one from the first to the last argument
+    template <typename Tag_t,typename Return_tt, typename Bind_tt>
+    struct Bind_t{
+    	static void run(Query_t<Tag_t, Return_tt, Bind_tt >& q, const impl::tuple_cref<Bind_tt>& bind_me){
+    		helpers::bind_r(q,bind_me);
+    	}
+    };
+
+    //bind (don't touch)
+    template <typename Tag_t,typename Return_tt, typename Bind_tt>
+    void bind(Query_t<Tag_t,Return_tt, Bind_tt >& q, const impl::tuple_cref<Bind_tt>&bind_me){
+    	Bind_t<Tag_t, Return_tt, Bind_tt >::run(q,bind_me);
+    }
+
+    //bind_a (don't touch)
+    //idem, for args...
+    template <typename Tag_t,typename Return_tt, typename Bind_tt, typename...A >
+    void bind_a(Query_t<Tag_t, Return_tt, Bind_tt >& q, const A&... bind_me){
+    	static_assert(std::tuple_size<Bind_tt>::value == sizeof...(bind_me), "Error in bind_a : wrong number of arguments");
+    	Bind_t<Tag_t,Return_tt,Bind_tt >::run(q, std::tie(bind_me...) );
+    }
+
 
     //bind Null (optional)
     //default do nothing, NO default, as some DB require to increment a bind counter.
@@ -725,7 +701,7 @@ namespace tdb{
 
     template<typename Tag_t>
     void read_string(Connection_t<Tag_t> &q, const std::string &s){
-    	static_assert(Read_String_t<Tag_t>::is_implemented,"ReadString_t is not implemented");
+    	static_assert(Read_Istream_t<Tag_t>::is_implemented,"ReadString_t is not implemented");
     	Read_String_t<Tag_t>::run(q,s);
     }
 
@@ -785,16 +761,17 @@ namespace tdb{
     }
 
 
-
-    template<typename Tag_t>
-    Rowid<Tag_t> insert_a(Query<Tag_t,std::tuple<>, std::tuple<> > &q){
-        return insert(q,std::tie());
-    }
-
     template<typename Tag_t, typename A1, typename... A>
     Rowid<Tag_t> insert_a(Query<Tag_t,std::tuple<>, std::tuple<A1,A...> > &q, const A1& bind_me1, const A&... bind_me){
     	return insert(q,std::tie(bind_me1,bind_me...));
     }
+
+    template<typename Tag_t, typename Sql_tt, typename A1, typename... A>
+    Rowid<Tag_t> insert_a(Connection_t<Tag_t> &c, const Sql_tt &sql_t, const A1& bind_me1, const A&... bind_me){
+    	return insert(c,sql_t,std::tie(bind_me1,bind_me...));
+    }
+
+
 
 
     //--- get_result ---

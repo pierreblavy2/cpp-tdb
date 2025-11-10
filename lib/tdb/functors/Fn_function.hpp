@@ -70,19 +70,23 @@ namespace tdb{
 		Fn_function(Fn_function&&)=default;
 		Fn_function(const Fn_function&)=delete;
 		Fn_function& operator=(const Fn_function&)=delete;
-		Fn_function()=delete;
+
+
+		//Construct
+		Fn_function(){}
 
 		template<typename... A>
-		Fn_function(
+		Fn_function(Connection_t<Tag_t>& db_,const tdb::SqlData_t<Tag_t> &sql, A&& ... a ){prepare(db_,sql,std::forward<A>(a)...);}
+
+		template<typename... A>
+		void prepare(
 				Connection_t<Tag_t>& db,
 				const tdb::SqlData_t<Tag_t> &sql,
 				A... a
-		):fn(std::forward<A>(a)...)		{
+		){
+			fn=std::make_unique<Fn_t>(std::forward<A>(a)...);	//TODO optimize : don't use pointer???
 			prepare_here<Return_tt,Bind_tt> (db,q,sql);
 		}
-
-		Fn_t fn;
-		Query<Tag_t,Return_tt,Bind_tt > q;
 
 
 		//dispatch on  Fn_t type (returns bool, v.s. no return)
@@ -90,11 +94,15 @@ namespace tdb{
 		template<typename T = void>
 		auto operator()( const Bind_a&... bind_me){
 			if constexpr(fn_returns_bool){
-				return impl::Foreach<false>::foreach_bool(q,fn,bind_me... );
+				return impl::Foreach<false>::foreach_bool(q,*fn,bind_me... );
 			}else{
-				impl::Foreach<false>::foreach_void(q,fn,bind_me... );
+				impl::Foreach<false>::foreach_void(q,*fn,bind_me... );
 			}
 		}
+
+		private:
+		std::unique_ptr<Fn_t> fn=nullptr;
+		Query<Tag_t,Return_tt,Bind_tt > q;
 	};
 
 
@@ -111,34 +119,41 @@ namespace tdb{
 		Fn_function(Fn_function&&)=default;
 		Fn_function(const Fn_function&)=delete;
 		Fn_function& operator=(const Fn_function&)=delete;
-		Fn_function()=delete;
+
+		//Construct
+		Fn_function(){}
 
 		template<typename... A>
-		Fn_function(
+		Fn_function(Connection_t<Tag_t>& db_,const tdb::SqlData_t<Tag_t> &sql, A&& ... a ){prepare(db_,sql,std::forward<A>(a)...);}
+
+		template<typename... A>
+		void prepare(
 				Connection_t<Tag_t>& db_,
 				const tdb::SqlData_t<Tag_t> &sql,
 				A... a
-		):fn(std::forward<A>(a)...),db(db_){
-			auto l = impl::connection_lock_guard (db);
-			prepare_here<Return_tt,Bind_tt> (q, db,sql);
+		){
+			//fn(std::forward<A>(a)...),db(db_)
+			fn=std::make_unique<Fn_t>(std::forward<A>(a)...);	//TODO optimize : don't use pointer???
+			db=&db_;
+			auto l = impl::connection_lock_guard (db_);
+			prepare_here<Return_tt,Bind_tt> (q, db_,sql);
 		}
-
-		Fn_t fn;
-		Connection_t<Tag_t>& db;
-		Query<Tag_t,Return_tt,Bind_tt > q;
 
 		//dispatch on  Fn_t type (returns bool, v.s. no return)
 		template<typename T = void>
 		auto operator()(const Bind_a&... bind_me){
+			//foreach_bool handles the locking
 			if constexpr(fn_returns_bool){
-				return impl::Foreach<true>::foreach_bool(db,q,fn,bind_me... );
+				return impl::Foreach<true>::foreach_bool(*db,q,*fn,bind_me... );
 			}else{
-				impl::Foreach<true>::foreach_void(db,q,fn,bind_me... );
+				impl::Foreach<true>::foreach_void(*db,q,*fn,bind_me... );
 			}
 		}
 
-
-
+		private:
+		std::unique_ptr<Fn_t> fn=nullptr;
+		Connection_t<Tag_t>*  db=nullptr;
+		Query<Tag_t,Return_tt,Bind_tt > q;
 
 	};
 

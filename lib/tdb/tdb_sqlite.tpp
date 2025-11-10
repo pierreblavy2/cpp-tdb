@@ -2,6 +2,7 @@
 #include <cstring> //strlen
 #include <cassert>
 
+#include <boost/cast.hpp>
 
 
 
@@ -131,7 +132,7 @@ struct tdb::Try_fetch_t<tdb::Tag_sqlite,Return_tt>{
 		else if(result.native_result == SQLITE_DONE){
 			return r;
 		}else{
-			//sqlite3_finalize(result.native_query);
+			sqlite3_finalize(result.native_query);
 			throw Exception_t<Tag_sqlite>("Cannot fetch the data" + sqlite::error_to_string(result.native_result)  );
 		}
 	}
@@ -169,6 +170,35 @@ template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,double,I>{
 };
 
 
+
+//=== Bind integers ===
+template<size_t I,typename T>
+struct tdb::Bind_one_t<
+  tdb::Tag_sqlite,T,I,
+  typename std::enable_if<std::numeric_limits<T>::is_integer>::type
+>{
+	static constexpr bool is_implemented=true;
+	static_assert(I <  std::numeric_limits<int>::max() , "Too many bound parameters");
+
+	template<typename Return_tt, typename Bind_tt>
+	static void run(Query_t<Tag_sqlite,Return_tt,Bind_tt>&q, const T & i){
+		++q.native_nb_bind;
+
+		int status;
+		if constexpr(std::is_same<T,sqlite3_int64>::value){
+			status = sqlite3_bind_int64(q.native_query,q.native_nb_bind,i);
+		}else{
+			sqlite3_int64 i64=boost::numeric_cast<T>(i);
+			status = sqlite3_bind_int64(q.native_query,q.native_nb_bind,i64);
+		}
+
+		if(status != SQLITE_OK){throw Exception_t<tdb::Tag_sqlite>("Cannot bind int64 in sqlite3, index=" + std::to_string(q.native_nb_bind) +/*", value=" + std::to_string(tmp) +*/ ",  error_code="+ std::to_string(status)+", sql="+q.sql_string());}
+	};
+};
+
+
+
+/*
 //sqlite3_int64 -> sqlite3_bind_int64
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,sqlite3_int64,I>{
 	static constexpr bool is_implemented=true;
@@ -198,8 +228,11 @@ template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,int,I>{
 		if(status != SQLITE_OK){throw Exception_t<tdb::Tag_sqlite>("Cannot bind int in sqlite3, index=" + std::to_string(q.native_nb_bind) +", value=" + std::to_string(d) + ",  error_code="+ std::to_string(status)+", sql="+q.sql_string());}
 	};
 };
+*/
 
 
+
+/*
 //size_t -> sqlite3_int64   => MAY OVERFLOW (throw)
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,size_t,I>{
 	static constexpr bool is_implemented=true;
@@ -239,7 +272,7 @@ template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,size_t,I>{
 
 	};
 };
-
+*/
 
 //std::string -> sqlite3_bind_text
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,std::string,I>{
@@ -323,6 +356,7 @@ template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,char,I>{
 //=== Get_one ===
 //===============
 //double <- sqlite3_column_double;
+/*
 template<size_t I>
 struct tdb::Get_one_t<tdb::Tag_sqlite,double,I>{
 	  static constexpr bool is_implemented=true;
@@ -336,8 +370,98 @@ struct tdb::Get_one_t<tdb::Tag_sqlite,double,I>{
 		  write_here=sqlite3_column_double(result.native_query,static_cast<int>(I));
 	 }
 };
+*/
+
+//FLOAT <-
+// double : sqlite3_column_double;
+// others : numeric_cast sqlite3_column_double
+
+template<size_t I, typename Float>
+struct tdb::Get_one_t<
+  tdb::Tag_sqlite,Float,I,
+  typename std::enable_if< std::numeric_limits<Float>::is_floating_point >::type
+>{
+	  static constexpr bool is_implemented=true;
+
+	  template<typename Return_tt>
+	  static void run(const Result_t<Tag_sqlite,Return_tt> &result, Float& write_here){
+		  //assert(I < sqlite3_column_count(result.native_query) );
+		  assert(I < std::numeric_limits<int>::max() );
+		  const auto coltype=sqlite3_column_type(result.native_query, static_cast<int>(I) );
+		  if(coltype!=SQLITE_FLOAT){throw tdb::Exception_t<tdb::Tag_sqlite>("sqlite : wrong type cannot get double ,column="+std::to_string(I)+", sql="+result.sql_string() + ", type=" + tdb::sqlite::coltype_to_string(coltype));}
+
+		  if constexpr(std::is_same<Float,double>::value){
+		      write_here=sqlite3_column_double(result.native_query,static_cast<int>(I));
+		  }else{
+			  double tmp = sqlite3_column_double(result.native_query,static_cast<int>(I));
+			  write_here = boost::numeric_cast<Float>(tmp);
+		  }
+	 }
+};
 
 
+//Integer <-
+// int           : sqlite3_column_int
+// sqlite3_int64 : sqlite3_column_int64;
+// other         : numeric_cast sqlite3_column_int64;
+
+template< size_t I, typename Integer>
+struct tdb::Get_one_t<
+  tdb::Tag_sqlite,
+  Integer,
+  I,
+  typename std::enable_if<std::numeric_limits<Integer>::is_integer>::type
+>{
+	  static constexpr bool is_implemented=true;
+
+	  template<typename Return_tt>
+	  static void run(const Result_t<Tag_sqlite,Return_tt> &result, Integer& write_here){
+		  assert(I < std::numeric_limits<int>::max() );
+		  const auto coltype=sqlite3_column_type(result.native_query, static_cast<int>(I) );
+		  if(coltype!=SQLITE_INTEGER){throw tdb::Exception_t<tdb::Tag_sqlite>("sqlite : wrong type cannot get integer ,column="+std::to_string(I)+", sql="+result.sql_string() + ", type=" + tdb::sqlite::coltype_to_string(coltype));}
+		  if constexpr(std::is_same<Integer,sqlite3_int64>::value){
+			  write_here=sqlite3_column_int64(result.native_query,static_cast<int>(I));
+		  }else if constexpr(std::is_same<Integer,int>::value){
+			  write_here=sqlite3_column_int(result.native_query,static_cast<int>(I));
+		  }else{
+			  sqlite3_int64 tmp = sqlite3_column_int64(result.native_query,static_cast<int>(I));
+			  write_here = boost::numeric_cast<Integer>(tmp);
+		  }
+	 }
+};
+
+
+
+/*
+template<size_t I>
+struct tdb::Get_one_t<
+  tdb::Tag_sqlite,
+  long long int,
+  I,
+  void //typename std::enable_if<std::numeric_limits<Integer>::is_integer>::type
+>{
+	  static constexpr bool is_implemented=true;
+	  typedef long long int Integer;
+
+	  template<typename Return_tt>
+	  static void run(const Result_t<Tag_sqlite,Return_tt> &result, Integer& write_here){
+		  assert(I < std::numeric_limits<int>::max() );
+		  const auto coltype=sqlite3_column_type(result.native_query, static_cast<int>(I) );
+		  if(coltype!=SQLITE_INTEGER){throw tdb::Exception_t<tdb::Tag_sqlite>("sqlite : wrong type cannot get integer ,column="+std::to_string(I)+", sql="+result.sql_string() + ", type=" + tdb::sqlite::coltype_to_string(coltype));}
+		  if constexpr(std::is_same<Integer,sqlite3_int64>::value){
+			  write_here=sqlite3_column_int64(result.native_query,static_cast<int>(I));
+		  }else if constexpr(std::is_same<Integer,int>::value){
+			  write_here=sqlite3_column_int(result.native_query,static_cast<int>(I));
+		  }else{
+			  sqlite3_int64 tmp = sqlite3_column_int64(result.native_query,static_cast<int>(I));
+			  write_here = boost::numeric_cast<Integer>(tmp);
+		  }
+	 }
+};
+
+*/
+
+/*
 //int <- sqlite3_column_int
 template<size_t I>
 struct tdb::Get_one_t<tdb::Tag_sqlite,int,I>{
@@ -382,6 +506,13 @@ template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,size_t,I>{
 		  write_here=sqlite3_column_int64(result.native_query,static_cast<int>(I));
 	 }
 };
+*/
+
+
+
+
+
+
 
 
 //std::string <- sqlite3_column_text
@@ -418,7 +549,7 @@ template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,bool,I>{
 	  }
 };
 
-
+/*
 //char <- sqlite3_column_text
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,char,I>{
 	  static constexpr bool is_implemented=true;
@@ -436,6 +567,8 @@ template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,char,I>{
 		  write_here=s[0];
 	  }
 };
+*/
+
 
 //Null <- do nothing
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,tdb::Null,I>{
@@ -470,7 +603,7 @@ struct tdb::Get_one_t<tdb::Tag_sqlite,std::optional<T>, I >{
 
 
 //=========================================
-//=== Execute_t, Insert_t, Get_result_t ===
+//=== Execute_t, ReadString_t, Insert_t, Get_result_t ===
 //=========================================
 //Execute_t (required)
 template<typename Return_tt, typename Bind_tt>
@@ -490,6 +623,39 @@ struct tdb::Execute_t<tdb::Tag_sqlite,Return_tt,Bind_tt >{
 		}
 	}
 };
+
+
+
+template<>
+struct tdb::Read_String_t<tdb::Tag_sqlite>{
+	static constexpr bool is_implemented = true;
+	static void run(Connection_t<tdb::Tag_sqlite> &q, const std::string &in){
+		//in contains multiple queries
+		char * err_msg;
+
+		//doc : https://www.sqlite.org/c3ref/exec.html
+		int querry_result=sqlite3_exec(
+		  q.native_connection,                       // sqlite3* : An open database
+		  in.c_str(),                                // const char* : SQL to be evaluated
+		  nullptr,                                   // int (*callback)(void*,int,char**,char**) : Callback function, invoked each row
+		  nullptr,                                   // void * :  1st argument to callback
+		  &err_msg                                   // char**: Error msg written here
+		);
+
+		if(err_msg!=nullptr){
+			std::string err = err_msg;
+			sqlite3_free(err_msg);
+			throw Exception_t<Tag_sqlite>("sqlite : error during execute : error_code=" + sqlite::error_to_string(querry_result)+", sql="+in+", msg="+err);
+		}
+
+	}
+};
+
+
+
+
+
+
 
 
 

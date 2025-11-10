@@ -36,20 +36,26 @@ template<typename Tag_t,  typename Return_tt, typename Bind_tt, bool Multi_threa
 		typedef std::tuple<Bind_a...>   Bind_tt;
 
 
-		template<typename... A>
-		Fn_foreach(Connection_t<Tag_t>& db, A&& ... a ){
-			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
-			prepare_here<Return_tt,Bind_tt> (db,q,s);
-		}
 
 		//movable, NOT copiable
 		Fn_foreach(Fn_foreach&&)=default;
 		Fn_foreach(const Fn_foreach&)=delete;
 		Fn_foreach& operator=(const Fn_foreach&)=delete;
-		Fn_foreach()=delete;
+
+		//construction
+		Fn_foreach(){}
+
+		template<typename... A>
+		Fn_foreach(Connection_t<Tag_t>& db_, A&& ... a ){prepare(db_,std::forward<A>(a)...);}
+
+		template<typename... A>
+		void prepare(Connection_t<Tag_t>& db, A&& ... a ){
+			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
+			prepare_here<Return_tt,Bind_tt> (db,q,s);
+		}
 
 
-		Query<Tag_t,Return_tt,Bind_tt > q;
+
 
 		//dispatch on  Fn_t type (returns bool, v.s. no return)
 		template<typename Fn_t>
@@ -63,6 +69,9 @@ template<typename Tag_t,  typename Return_tt, typename Bind_tt, bool Multi_threa
 				impl::Foreach<false>::foreach_void(q,std::forward<Fn_t>(fn),bind_me... );
 			}
 		}
+
+		private:
+		Query<Tag_t,Return_tt,Bind_tt > q;
 
 
 	};
@@ -78,17 +87,21 @@ template<typename Tag_t,  typename Return_tt, typename Bind_tt, bool Multi_threa
 		Fn_foreach(Fn_foreach&&)=default;
 		Fn_foreach(const Fn_foreach&)=delete;
 		Fn_foreach& operator=(const Fn_foreach&)=delete;
-		Fn_foreach()=delete;
+
+
+		Fn_foreach(){}
 
 		template<typename... A>
-		Fn_foreach(Connection_t<Tag_t>& db_, A&& ... a ):db(db_){
-			auto l = impl::connection_lock_guard (db);
+		Fn_foreach(Connection_t<Tag_t>& db_, A&& ... a ){prepare(db_,std::forward<A>(a)...);}
+
+		template<typename... A>
+		void prepare(Connection_t<Tag_t>& db_, A&& ... a){
+			db=&db_;
+			auto l = impl::connection_lock_guard (db_);
 			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
-			prepare_here<Return_tt,Bind_tt> (q, db,s);
+			prepare_here<Return_tt,Bind_tt> (q, db_,s);
 		}
 
-		Query<Tag_t,Return_tt,Bind_tt > q;
-		Connection_t<Tag_t>& db;
 
 		//dispatch on  Fn_t type (returns bool, v.s. no return)
 		template<typename Fn_t>
@@ -96,12 +109,18 @@ template<typename Tag_t,  typename Return_tt, typename Bind_tt, bool Multi_threa
 			typedef typename std::invoke_result<Fn_t, Return_a...>::type return_t;
 			static constexpr bool is_bool = std::is_convertible<return_t,bool>::value;
 
+			//foreach_bool handles the locking
 			if constexpr(is_bool){
-				return impl::Foreach<true>::foreach_bool(db,q,std::forward<Fn_t>(fn),bind_me... );
+				return impl::Foreach<true>::foreach_bool(*db,q,std::forward<Fn_t>(fn),bind_me... );
 			}else{
-				impl::Foreach<true>::foreach_void(db,q,std::forward<Fn_t>(fn),bind_me... );
+				impl::Foreach<true>::foreach_void(*db,q,std::forward<Fn_t>(fn),bind_me... );
 			}
 		}
+
+		private:
+		Query<Tag_t,Return_tt,Bind_tt > q;
+		Connection_t<Tag_t>* db=nullptr;//NOT owned
+
 
 
 	};

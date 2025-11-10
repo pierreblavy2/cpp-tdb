@@ -15,73 +15,88 @@
 namespace tdb{
 
 template<typename Tag_t,  typename Return_tt, typename Bind_tt, bool Multi_thread>
-	struct Fn_get_row_optional;
+struct Fn_get_row_optional;
 
-	template<typename Tag_t,  typename Return_tt_, typename... Bind_a>
-	struct Fn_get_row_optional<Tag_t, Return_tt_, std::tuple<Bind_a...> , false >{
+template<typename Tag_t,  typename Return_tt_, typename... Bind_a>
+struct Fn_get_row_optional<Tag_t, Return_tt_, std::tuple<Bind_a...> , false >{
 
-		typedef Return_tt_ Return_tt;
-		typedef std::tuple<Bind_a...> Bind_tt;
+	typedef Return_tt_ Return_tt;
+	typedef std::tuple<Bind_a...> Bind_tt;
 
-		//movable, NOT copiable
-		Fn_get_row_optional(Fn_get_row_optional&&)=default;
-		Fn_get_row_optional(const Fn_get_row_optional&)=delete;
-		Fn_get_row_optional& operator=(const Fn_get_row_optional&)=delete;
-		Fn_get_row_optional()=delete;
+	//movable, NOT copiable
+	Fn_get_row_optional(Fn_get_row_optional&&)=default;
+	Fn_get_row_optional(const Fn_get_row_optional&)=delete;
+	Fn_get_row_optional& operator=(const Fn_get_row_optional&)=delete;
 
-		template<typename... A>
-		Fn_get_row_optional(Connection_t<Tag_t>& db, A&& ... a ){
-			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
-			prepare_here<Return_tt,Bind_tt> (db,q,s);
-		}
+	//Construct
+	Fn_get_row_optional(){}
 
-		std::optional<Return_tt> operator()( const Bind_a&... bind_me){
-			auto result = tdb::get_result_a(q, bind_me...);
-			auto l1 = tdb::try_fetch(result);
-			if(!l1.has_value()){return l1;}
+	template<typename... A>
+	Fn_get_row_optional(Connection_t<Tag_t>& db_, A&& ... a ){prepare(db_,std::forward<A>(a)...);}
 
-			auto l2 = tdb::try_fetch(result);
-			if(l2.has_value()){throw std::runtime_error("Error in Fn_value_optional : more than 1 line"); }
-			return l1;
+	template<typename... A>
+	void prepare(Connection_t<Tag_t>& db, A&& ... a ){
+		auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
+		prepare_here<Return_tt,Bind_tt> (db,q,s);
+	}
 
-		}
 
-		Query<Tag_t,Return_tt,Bind_tt > q;
-	};
+	std::optional<Return_tt> operator()( const Bind_a&... bind_me){
+		auto result = tdb::get_result_a(q, bind_me...);
+		auto l1 = tdb::try_fetch(result);
+		if(!l1.has_value()){return l1;}
 
-	template<typename Tag_t,  typename Return_tt_, typename... Bind_a>
-	struct Fn_get_row_optional<Tag_t, Return_tt_, std::tuple<Bind_a...> , true >{
+		auto l2 = tdb::try_fetch(result);
+		if(l2.has_value()){throw std::runtime_error("Error in Fn_value_optional : more than 1 line"); }
+		return l1;
 
-		typedef Return_tt_ Return_tt;
-		typedef std::tuple<Bind_a...> Bind_tt;
+	}
 
-		//movable, NOT copiable
-		Fn_get_row_optional(Fn_get_row_optional&&)=default;
-		Fn_get_row_optional(const Fn_get_row_optional&)=delete;
-		Fn_get_row_optional& operator=(const Fn_get_row_optional&)=delete;
-		Fn_get_row_optional()=delete;
+	private:
+	Query<Tag_t,Return_tt,Bind_tt > q;
+};
 
-		template<typename... A>
-		Fn_get_row_optional(Connection_t<Tag_t>& db_, A&& ... a ):db(db_){
-			auto l = impl::connection_lock_guard (db);
-			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
-			prepare_here<Return_tt,Bind_tt> (q, db,s);
-		}
 
-		std::optional<Return_tt> operator()( const Bind_a&... bind_me){
-			auto l = impl::connection_lock_guard (db);
-			auto result = tdb::get_result_a(q, bind_me...);
-			auto l1 = tdb::try_fetch(result);
-			if(!l1.has_value()){return l1;}
 
-			auto l2 = tdb::try_fetch(result);
-			if(l2.has_value()){throw std::runtime_error("Error in Fn_value_optional : more than 1 line"); }
-			return l1;
-		}
+template<typename Tag_t,  typename Return_tt_, typename... Bind_a>
+struct Fn_get_row_optional<Tag_t, Return_tt_, std::tuple<Bind_a...> , true >{
 
-		Connection_t<Tag_t>& db;
-		Query<Tag_t,Return_tt,Bind_tt > q;
-	};
+	typedef Return_tt_ Return_tt;
+	typedef std::tuple<Bind_a...> Bind_tt;
+
+	//movable, NOT copiable
+	Fn_get_row_optional(Fn_get_row_optional&&)=default;
+	Fn_get_row_optional(const Fn_get_row_optional&)=delete;
+	Fn_get_row_optional& operator=(const Fn_get_row_optional&)=delete;
+
+	Fn_get_row_optional(){}
+
+	template<typename... A>
+	Fn_get_row_optional(Connection_t<Tag_t>& db_, A&& ... a ){prepare(db_,std::forward<A>(a)...);}
+
+	template<typename... A>
+	void prepare(Connection_t<Tag_t>& db_, A&& ... a ){
+		db=&db_;
+		auto l = impl::connection_lock_guard (db_);
+		auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
+		prepare_here<Return_tt,Bind_tt> (q, db_,s);
+	}
+
+	std::optional<Return_tt> operator()( const Bind_a&... bind_me){
+		auto l = impl::connection_lock_guard (*db);
+		auto result = tdb::get_result_a(q, bind_me...);
+		auto l1 = tdb::try_fetch(result);
+		if(!l1.has_value()){return l1;}
+
+		auto l2 = tdb::try_fetch(result);
+		if(l2.has_value()){throw std::runtime_error("Error in Fn_value_optional : more than 1 line"); }
+		return l1;
+	}
+
+	private:
+	Connection_t<Tag_t>* db=nullptr;
+	Query<Tag_t,Return_tt,Bind_tt > q;
+};
 
 
 }//end namespace tdb

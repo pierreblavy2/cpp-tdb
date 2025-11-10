@@ -16,64 +16,77 @@
 namespace tdb{
 
 template<typename Tag_t,  typename Return_tt, typename Bind_tt, bool Multi_thread>
-	struct Fn_get_row_unique;
+struct Fn_get_row_unique;
 
-	template<typename Tag_t,  typename Return_tt_, typename... Bind_a>
-	struct Fn_get_row_unique<Tag_t, Return_tt_, std::tuple<Bind_a...> , false >{
+template<typename Tag_t,  typename Return_tt_, typename... Bind_a>
+struct Fn_get_row_unique<Tag_t, Return_tt_, std::tuple<Bind_a...> , false >{
 
-		typedef Return_tt_ Return_tt;
-		typedef std::tuple<Bind_a...> Bind_tt;
+	typedef Return_tt_ Return_tt;
+	typedef std::tuple<Bind_a...> Bind_tt;
 
-		//movable, NOT copiable
-		Fn_get_row_unique(Fn_get_row_unique&&)=default;
-		Fn_get_row_unique(const Fn_get_row_unique&)=delete;
-		Fn_get_row_unique& operator=(const Fn_get_row_unique&)=delete;
-		Fn_get_row_unique()=delete;
+	//movable, NOT copiable
+	Fn_get_row_unique(Fn_get_row_unique&&)=default;
+	Fn_get_row_unique(const Fn_get_row_unique&)=delete;
+	Fn_get_row_unique& operator=(const Fn_get_row_unique&)=delete;
 
-		template<typename... A>
-		Fn_get_row_unique(Connection_t<Tag_t>& db, A&& ... a ){
-			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
-			prepare_here<Return_tt,Bind_tt> (db,q,s);
-		}
+	Fn_get_row_unique(){}
 
-		Return_tt operator()( const Bind_a&... bind_me){
-			Return_tt r;
-			get_unique(q,r,std::tie(bind_me...));
-			return r;
-		}
+	template<typename... A>
+	Fn_get_row_unique(Connection_t<Tag_t>& db_, A&& ... a ){prepare(db_,std::forward<A>(a)...);}
 
-		Query<Tag_t,Return_tt,Bind_tt > q;
-	};
 
-	template<typename Tag_t,  typename Return_tt_, typename... Bind_a>
-	struct Fn_get_row_unique<Tag_t, Return_tt_, std::tuple<Bind_a...> , true >{
+	template<typename... A>
+	void prepare(Connection_t<Tag_t>& db, A&& ... a ){
+		auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
+		prepare_here<Return_tt,Bind_tt> (db,q,s);
+	}
 
-		typedef Return_tt_ Return_tt;
-		typedef std::tuple<Bind_a...> Bind_tt;
+	Return_tt operator()( const Bind_a&... bind_me){
+		Return_tt r;
+		get_unique(q,r,std::tie(bind_me...));
+		return r;
+	}
 
-		//movable, NOT copiable
-		Fn_get_row_unique(Fn_get_row_unique&&)=default;
-		Fn_get_row_unique(const Fn_get_row_unique&)=delete;
-		Fn_get_row_unique& operator=(const Fn_get_row_unique&)=delete;
-		Fn_get_row_unique()=delete;
+	private:
+	Query<Tag_t,Return_tt,Bind_tt > q;
+};
 
-		template<typename... A>
-		Fn_get_row_unique(Connection_t<Tag_t>& db_, A&& ... a ):db(db_){
-			auto l = impl::connection_lock_guard (db);
-			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
-			prepare_here<Return_tt,Bind_tt> (q, db,s);
-		}
 
-		Return_tt operator()( const Bind_a&... bind_me){
-			auto l = impl::connection_lock_guard (db);
-			Return_tt r;
-			get_unique(q,r,std::tie(bind_me...));
-			return r;
-		}
 
-		Connection_t<Tag_t>& db;
-		Query<Tag_t,Return_tt,Bind_tt > q;
-	};
+
+template<typename Tag_t,  typename Return_tt_, typename... Bind_a>
+struct Fn_get_row_unique<Tag_t, Return_tt_, std::tuple<Bind_a...> , true >{
+
+	typedef Return_tt_ Return_tt;
+	typedef std::tuple<Bind_a...> Bind_tt;
+
+	//movable, NOT copiable
+	Fn_get_row_unique(Fn_get_row_unique&&)=default;
+	Fn_get_row_unique(const Fn_get_row_unique&)=delete;
+	Fn_get_row_unique& operator=(const Fn_get_row_unique&)=delete;
+
+	//Construct
+	Fn_get_row_unique(){}
+
+	template<typename... A>
+	Fn_get_row_unique(Connection_t<Tag_t>& db_, A&& ... a ){
+		db=&db_;
+		auto l = impl::connection_lock_guard (db_);
+		auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
+		prepare_here<Return_tt,Bind_tt> (q, db_,s);
+	}
+
+	Return_tt operator()( const Bind_a&... bind_me){
+		auto l = impl::connection_lock_guard (*db);
+		Return_tt r;
+		get_unique(q,r,std::tie(bind_me...));
+		return r;
+	}
+
+	private:
+	Connection_t<Tag_t>* db=nullptr;//not owned
+	Query<Tag_t,Return_tt,Bind_tt > q;
+};
 
 
 }//end namespace tdb

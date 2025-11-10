@@ -21,19 +21,27 @@ template<typename Tag_t,  typename Return_tt, typename Bind_tt, bool Multi_threa
 		Fn_execute(Fn_execute&&)=default;
 		Fn_execute(const Fn_execute&)=delete;
 		Fn_execute& operator=(const Fn_execute&)=delete;
-		Fn_execute()=delete;
+
+		//Construct
+		Fn_execute(){}
 
 		template<typename... A>
-		Fn_execute(Connection_t<Tag_t>& db, A&& ... a ){
+		Fn_execute(Connection_t<Tag_t>& db_, A&& ... a ){prepare(db_,std::forward<A>(a)...);}
+
+		template<typename... A>
+		void prepare(Connection_t<Tag_t>& db, A&& ... a ){
 			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
 			prepare_here<Return_tt,Bind_tt> (db,q,s);
 		}
 
-		Query<Tag_t,Return_tt,Bind_tt > q;
 
 		void operator()(const Bind_a&... bind_me){
 			tdb::execute_a(q,bind_me...);
 		}
+
+		private:
+		Query<Tag_t,Return_tt,Bind_tt > q;
+
 
 	};
 
@@ -50,21 +58,29 @@ template<typename Tag_t,  typename Return_tt, typename Bind_tt, bool Multi_threa
 		Fn_execute(Fn_execute&&)=default;
 		Fn_execute(const Fn_execute&)=delete;
 		Fn_execute& operator=(const Fn_execute&)=delete;
-		Fn_execute()=delete;
+
+		//Construct
+		Fn_execute(){}
 
 		template<typename... A>
-		Fn_execute(Connection_t<Tag_t>& db_, A&& ... a ):db(db_){
-			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
-			prepare_here<Return_tt,Bind_tt> (db,q,s);
-		}
+		Fn_execute(Connection_t<Tag_t>& db_, A&& ... a ){prepare(db_,std::forward<A>(a)...);}
 
-		Connection_t<Tag_t>& db;
-		Query<Tag_t,Return_tt,Bind_tt > q;
+		template<typename... A>
+		void prepare(Connection_t<Tag_t>& db_, A&& ... a ){
+			db=&db_;
+			auto s = tdb::sql<Tag_t>(std::forward<A>(a)...);
+			prepare_here<Return_tt,Bind_tt> (db_,q,s);
+		}
 
 		void operator()(const Bind_a&... bind_me){
-			auto l = impl::connection_lock_guard (db);
+			auto l = impl::connection_lock_guard (*db);
 			tdb::execute_a(q,bind_me...);
 		}
+
+		private:
+		Connection_t<Tag_t>* db=nullptr;//not owned
+		Query<Tag_t,Return_tt,Bind_tt > q;
+
 
 	};
 
