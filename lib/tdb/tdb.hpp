@@ -725,7 +725,7 @@ namespace tdb{
 
     template<typename Tag_t>
     void read_string(Connection_t<Tag_t> &q, const std::string &s){
-    	static_assert(Read_Istream_t<Tag_t>::is_implemented,"ReadString_t is not implemented");
+    	static_assert(Read_String_t<Tag_t>::is_implemented,"ReadString_t is not implemented");
     	Read_String_t<Tag_t>::run(q,s);
     }
 
