@@ -631,7 +631,7 @@ struct tdb::Read_String_t<tdb::Tag_sqlite>{
 	static constexpr bool is_implemented = true;
 	static void run(Connection_t<tdb::Tag_sqlite> &q, const std::string &in){
 		//in contains multiple queries
-		char * err_msg;
+		char * err_msg=nullptr;
 
 		//doc : https://www.sqlite.org/c3ref/exec.html
 		int querry_result=sqlite3_exec(
