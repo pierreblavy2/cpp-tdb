@@ -274,6 +274,30 @@ template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,size_t,I>{
 };
 */
 
+
+template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,tdb::Blob,I>{
+    static constexpr bool is_implemented=true;
+    static_assert(I <  std::numeric_limits<int>::max() , "Too many bound parameters");
+
+    template<typename Return_tt, typename Bind_tt>
+    static void run(Query_t<Tag_sqlite,Return_tt,Bind_tt>&q, const tdb::Blob & d){
+        ++q.native_nb_bind;
+        const size_t d_size = d.str.size();
+        assert(d_size <  std::numeric_limits<int>::max());
+
+        auto status = sqlite3_bind_blob(
+            q.native_query,
+            q.native_nb_bind,
+            d.str.data(),
+            static_cast<int>(d_size),
+            SQLITE_STATIC
+        );
+        if(status != SQLITE_OK){throw Exception_t<tdb::Tag_sqlite>("Cannot bind string as text, index=" + std::to_string(q.native_nb_bind) +", value=" + d.str + ",  error_code="+ std::to_string(status)+", sql="+q.sql_string());}
+    }
+};
+
+
+
 //std::string -> sqlite3_bind_text
 template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,std::string,I>{
 	static constexpr bool is_implemented=true;
@@ -379,9 +403,10 @@ struct tdb::Get_one_t<tdb::Tag_sqlite,double,I>{
 template<size_t I, typename Float>
 struct tdb::Get_one_t<
   tdb::Tag_sqlite,Float,I,
-  typename std::enable_if< std::numeric_limits<Float>::is_floating_point >::type
+  typename std::enable_if< std::is_floating_point<Float>::value  >::type
 >{
 	  static constexpr bool is_implemented=true;
+	  
 
 	  template<typename Return_tt>
 	  static void run(const Result_t<Tag_sqlite,Return_tt> &result, Float& write_here){
@@ -524,10 +549,44 @@ template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,std::string,I>{
 		  //doc : https://stackoverflow.com/questions/804123/const-unsigned-char-to-stdstring
 		  static_assert(I <  std::numeric_limits<int>::max(),"I is too large");
 		  const auto coltype=sqlite3_column_type(result.native_query, static_cast<int>(I) );
-		  if(coltype!=SQLITE_TEXT){throw tdb::Exception_t<tdb::Tag_sqlite>("sqlite : wrong type cannot get string ,column="+std::to_string(I)+", sql="+result.sql_string() + ", type=" + tdb::sqlite::coltype_to_string(coltype));}
-		  write_here=static_cast<std::string>( reinterpret_cast<const char*>(sqlite3_column_text  (result.native_query, static_cast<int>(I))) );
+
+          if(coltype!=SQLITE_TEXT){
+              throw tdb::Exception_t<tdb::Tag_sqlite>("sqlite : wrong type cannot get string ,column="+std::to_string(I)+", sql="+result.sql_string() + ", type=" + tdb::sqlite::coltype_to_string(coltype));
+          }
+          write_here=static_cast<std::string>( reinterpret_cast<const char*>(sqlite3_column_text  (result.native_query, static_cast<int>(I))) );
 	 }
 };
+
+
+
+
+
+//blob <- sqlite3_column_blob
+template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,tdb::Blob,I>{
+    static constexpr bool is_implemented=true;
+
+    template<typename Return_tt>
+    static void run(const Result_t<Tag_sqlite,Return_tt> &result, tdb::Blob& write_here){
+
+        static_assert(I <  std::numeric_limits<int>::max(),"I is too large");
+        const auto coltype=sqlite3_column_type(result.native_query, static_cast<int>(I) );
+
+        if(coltype!=SQLITE_BLOB){throw tdb::Exception_t<tdb::Tag_sqlite>("sqlite : wrong type cannot get blob ,column="+std::to_string(I)+", sql="+result.sql_string() + ", type=" + tdb::sqlite::coltype_to_string(coltype));}
+
+        const int column_index = static_cast<int>(I) ;
+        auto        blob_size = sqlite3_column_bytes(result.native_query, column_index);
+        const void* blob_data = sqlite3_column_blob(result.native_query, column_index);
+
+        if (blob_size == 0 || blob_data == nullptr) {
+            write_here.str="";
+            return;
+        }
+        write_here.str = std::string(static_cast<const char*>(blob_data), blob_size);
+        return;
+    }
+};
+
+
 
 
 //bool <- sqlite3_column_int (MAY THROW)
@@ -631,7 +690,7 @@ struct tdb::Read_String_t<tdb::Tag_sqlite>{
 	static constexpr bool is_implemented = true;
 	static void run(Connection_t<tdb::Tag_sqlite> &q, const std::string &in){
 		//in contains multiple queries
-		char * err_msg=nullptr;
+        char * err_msg=nullptr;
 
 		//doc : https://www.sqlite.org/c3ref/exec.html
 		int querry_result=sqlite3_exec(

@@ -12,6 +12,9 @@
 
 namespace tdb{
 	struct Tag_sqlite{};
+
+
+
 }
 
 
@@ -53,12 +56,12 @@ struct tdb::Connection_t<tdb::Tag_sqlite>{
 
 	//if possible construct from : db_name, db_host="", db_user="", db_pass="",port=0,extra="");
 	explicit Connection_t(
-			const std::string& db_name,
-			const std::string& db_host,    //ignored
-			const std::string& db_user="", //ignored
-			const std::string& db_pass="", //ignored
-			int   port = 0,                //ignored
-			const std::string& extra = ""  //ignored
+            const std::string& db_name,
+            const std::string& /*db_host*/,    //ignored
+            const std::string& /*db_user*/="", //ignored
+            const std::string& /*db_pass*/="", //ignored
+            int   /*port*/ = 0,                //ignored
+            const std::string& /*extra*/ = ""  //ignored
 	){connect(db_name);}
 
 
@@ -242,7 +245,6 @@ template<size_t I> struct tdb::Bind_one_t<tdb::Tag_sqlite,size_t       ,I>; //si
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,std::string,   I>; //std::string   <- sqlite3_column_text
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,bool,          I>; //bool          <- sqlite3_column_int  (expects 0 or 1, throw if anything else)
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,char,          I>; //char          <- sqlite3_column_text (expect a single char string, throw if anything else)
-
 template<size_t I> struct tdb::Get_one_t<tdb::Tag_sqlite,tdb::Null,     I>; //Null          <- do nothing
 
 //std::optional
