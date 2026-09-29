@@ -24,6 +24,11 @@ namespace tdb{
     //=== types ===
     //=============
 
+    struct Blob{
+        std::string str;
+    };
+
+
 	//--- rowid (required) ---
 	template<typename Tag_t> struct Rowid_t;
 
@@ -68,7 +73,7 @@ namespace tdb{
 		template<typename... Args>
 		static Connection_t<Tag_t> run(Args&&... a){
 			static constexpr bool is_constructible = std::is_constructible<Connection_t<Tag_t>,Args...>::value;
-			static_assert(is_constructible, "The default implementation of Connect_t require a constructor of Connection_t(Args...)");
+            //static_assert(is_constructible, "The default implementation of Connect_t require a constructor of Connection_t(Args...)");
 			return   Connection_t<Tag_t>  (std::forward<Args>(a)...);
 		}
 	};
@@ -713,7 +718,8 @@ namespace tdb{
     	read_istream(q,in);
     }
 
-
+    template<typename Tag_t>
+    void read_file(Connection_t<Tag_t> &q, const char *p){read_file(q,std::filesystem::path(p));}
 
 
     //--- insert ---
@@ -939,6 +945,12 @@ namespace tdb{
 
 }//end namespace tdb
 
+
+
+inline std::ostream& operator <<(std::ostream &out, const tdb::Blob &x ){
+    out << x.str;
+    return out;
+}
 
 
 #endif /* LIB_TDB_TDB_HPP_ */
